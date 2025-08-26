@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in</title>
+
+<link href="assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="assets/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>Log In</h2>
+        <form>
+            <input id="username_txt" type="text" placeholder="Username" required>
+            <input id="password_txt" type="password" placeholder="Password" required>
+            <input style="display: none;" id="otp_txt" type="number" placeholder="OTP code" required>
+            <button id="loginBtn" type="button">Log in</button>
+            <button style="display: none;" id="checkOtpBtn" type="button">Confirm</button>
+        </form>
+        <a href="signup.html">Don't have an account? Sign up</a>
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById("loginBtn");
+
+        const username_txt = document.getElementById("username_txt");
+        const password_txt = document.getElementById("password_txt");
+
+        const otp_txt = document.getElementById("otp_txt");
+        const checkOtpBtn = document.getElementById("checkOtpBtn");
+
+        loginBtn.addEventListener('click', function() {
+            const data = {
+                "username": username_txt.value,
+                "password": password_txt.value
+            };
+            
+            fetch("http://localhost:3000/api/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                }
+            )
+            .then(response => response.json())
+            .then(data => {
+                if(data["STATUS_CODE"] == 202) {
+                    username_txt.style.display = "none";
+                    loginBtn.style.display = "none";
+                    password_txt.style.display = "none";
+
+                    otp_txt.style.display = "block";
+                    checkOtpBtn.style.display = "block";
+
+                    setCookie("pendingID", data["PENDING_ID"], 10);
+                }
+
+                else {
+                    alert("An error occurred:\nSTATUS CODE: " + data["STATUS_CODE"] + "\n\n" + data["MESSAGE"]);
+                }
+            });
+        });
+
+        checkOtpBtn.addEventListener('click', function() {
+            let pendingID = getCookie("pendingID");
+
+            const data = {
+                "pendingID": pendingID,
+                "otp": otp_txt.value
+            };
+            
+            fetch("http://localhost:3000/api/otp_verification",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                }
+            )
+            .then(response => response.json())
+            .then(data => {
+                if(data["STATUS_CODE"] == 200) {
+                    alert("Login successful:\nSTATUS CODE: " + data["STATUS_CODE"] + "\n\n" + data["MESSAGE"] + "\n\n\nI hope this repository has been helpful in understanding and learning how to manage a secure login!\n\nFeel free to experiment you can modify and improve my code, add extra checks, or implement new actions to execute after login.");
+                }
+
+                else {
+                    alert("An error occurred:\nSTATUS CODE: " + data["STATUS_CODE"] + "\n\n" + data["MESSAGE"]);
+                }
+            });
+        });
+
+        function setCookie(name, value, minutes) {
+            let expires = "";
+            if (minutes) {
+                const date = new Date();
+                date.setTime(date.getTime() + (minutes * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';')[0]);
+            return null;
+        }
+
+        function deleteCookie(name) {
+            setCookie(name, "", -1);
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
