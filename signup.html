@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign up</title>
+
+<link href="assets/css/bootstrap.min.css" rel="stylesheet">
+<link href="assets/css/style.css" rel="stylesheet">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/qrcode.js"></script>
+</head>
+
+<body>
+    <!-- Modal -->
+    <div class="modal fade" id="wModal" tabindex="-1" aria-labelledby="wModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="wModalLabel">TOTP secret key</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <center>
+                <div id="qrcode" style="width:200px; height:200px;margin-bottom:25px;"></div>
+                Scan this QR code in your authenticator app or enter the code manually:<br>
+                <b id="secretTOTPkey"></b>
+            </center>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="window.location.href = 'login.html'">Close</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="login-container">
+        <h2>Sign Up</h2>
+        <form>
+            <input id="username_txt" type="text" placeholder="Username" required>
+            <input id="password_txt" type="password" placeholder="Password" required>
+            <input id="confirmPassword_txt" type="password" placeholder="Confirm password" required>
+            <button id="signupBtn" type="button">Sign Up</button>
+        </form>
+        <a href="login.html">Already have an account? Log in</a>
+    </div>
+    
+    <script>
+        const signupBtn = document.getElementById("signupBtn");
+
+        const username_txt = document.getElementById("username_txt");
+        const password_txt = document.getElementById("password_txt");
+        const confirmPassword_txt = document.getElementById("confirmPassword_txt");
+
+        signupBtn.addEventListener("click", function() {
+            if(password_txt.value != confirmPassword_txt.value) {
+                alert("The passwords you entered do not match, please check and try again");
+            }
+
+            else
+            {
+                const data = {
+                    "username": username_txt.value,
+                    "password": password_txt.value
+                };
+
+                fetch("http://localhost:3000/api/signup",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    let stat_code = data["STATUS_CODE"];
+                    
+                    if(stat_code == 201) {
+                        document.getElementById("secretTOTPkey").innerText = data["TOTP_SECRET_KEY"];
+
+                        qrcode.makeCode("otpauth://totp/0xVent:" + username_txt.value + "?secret=" + data["TOTP_SECRET_KEY"] + "&issuer=0xVent");
+                        var modal = new bootstrap.Modal(document.getElementById('wModal'));
+                        modal.show();
+
+                        username_txt.value = "";
+                        password_txt.value = "";
+                        confirmPassword_txt.value = "";
+                    }
+
+                    else {
+                        alert("An error occurred:\nSTATUS CODE: " + stat_code + "\n\n" + data["MESSAGE"]);
+                    }
+                });
+            }
+        });
+
+        var qrcode = new QRCode(document.getElementById("qrcode"), {
+            width : 200,
+            height : 200
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
