@@ -22,4 +22,4 @@ node server.js
 ```
 > Make sure the HTML files are served from a server (hosted) and not opened directly as local files, because the login stores the pending login request ID in cookies, which won’t work if you open the file locally.
 
-## I hope this helps you learn how a robust login and signup system works. Have fun experimenting and modifying my code by adding extra features, for example, a token-based system after the user logs in.
+I hope this helps you learn how a robust login and signup system works. Have fun experimenting and modifying my code by adding extra features, for example, a token-based system after the user logs in.
